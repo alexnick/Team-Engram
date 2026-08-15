@@ -1,14 +1,14 @@
-# Engram Agent Bootstrap
+# Team Engram Agent Bootstrap
 
-This repository is a Engram / Brain repository.
+Team Engram is a shared, Markdown-first organizational knowledge repository.
 
 Before substantial work in this repository:
 
 1. Read `.agents/AGENTS.md`.
-2. Read `USER-GUIDE.md` when the user asks how to use the Engram.
-3. Read `QUICKSTART.md` for the shortest onboarding guide.
-4. Follow the Engram protocol and approval boundaries.
+2. Follow `Protocols/Team-Engram-Protocol.md` as the normative behavior and collaboration contract.
+3. Read `CONTEXT-MAP.md`, then `Engram/CONTEXT.md`, and load only the material needed for the request.
+4. Inspect the Git working tree before writing. Preserve unrelated work.
 
-This root `AGENTS.md` is the portable entry point for Hermes, IDE agents, and other harnesses that discover instructions from the workspace root.
+All repository artifacts are English. Conversation may use the user's preferred language.
 
-When reusable skills, workflows, protocols, templates, tools, or public documentation change, read `docs/MAINTAINING.md` and maintain `CHANGELOG.md`. Never copy private Brain content into the product repository.
+Team Engram stores reusable organizational knowledge. Project-specific implementation truth and project-only skills remain in their project repositories, including when those repositories are attached in a multi-root workspace.

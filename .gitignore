@@ -1,11 +1,11 @@
 # OS junk files
-[Dd]s.[Ss]tore
+.DS_Store
 Thumbs.db
 db.db
 *.tmp
 *.bak
 
-# IDE / Editor configuration and temporary files
+# IDE and editor-local files
 .vscode/
 .idea/
 *.suo
@@ -17,7 +17,13 @@ db.db
 .obsidian/workspace-mobile
 .obsidian/workspace.json
 
-# Local secrets & environment files
+# Local Cursor multi-root workspaces
+*.code-workspace
+
+# Generated Team Engram navigation
+Engram/INDEX.md
+
+# Local secrets and environment files
 .env
 .env.*
 !.env.example

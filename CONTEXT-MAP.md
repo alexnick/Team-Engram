@@ -1,29 +1,35 @@
-# Context Map
+# Team Engram Context Map
 
-This is the small routing map for the Engram. Keep it short; use `Engram/INDEX.md` for the full generated catalog.
+This committed file is the short router for Team Engram. Keep it small. Cursor regenerates the complete local catalog at `Engram/INDEX.md` when needed.
 
-## Start Here
+## Start here
 
-- [Home Dashboard](Dashboards/HOME.md)
+- [Quickstart](QUICKSTART.md)
 - [User Guide](USER-GUIDE.md)
-- [Brain Context](Engram/CONTEXT.md)
-- [Generated Engram Index](Engram/INDEX.md)
-- [Operations Log](Engram/LOG.md)
+- [Team Engram corpus context](Engram/CONTEXT.md)
+- [Task guide index](docs/README.md)
+- [Team Engram Protocol](Protocols/Team-Engram-Protocol.md)
 
-## Main Areas
+## Corpus
 
-- [Inbox](Engram/Inbox/) — ordinary raw captures waiting for review.
-- [Health Inbox](Engram/Health/Inbox/) — explicitly health-related raw captures.
-- [Knowledge](Engram/Knowledge/) — reusable derived knowledge.
-- [Decisions](Engram/Decisions/) — consequential approved decisions.
-- [Entities](Engram/Entities/) — people, organizations, places, products, concepts, and other durable objects.
-- [Events](Engram/Events/) — dated things that happened.
-- [Sources](Engram/Sources/) — raw source provenance and derived source records.
-- [Projects](docs/PROJECTS.md) — conventions for project contexts, maps, decisions, and external source trees.
-- [Learning](Learning/) — optional learning workspaces.
+- [Knowledge](Engram/Knowledge/) — reusable maintained organizational synthesis.
+- [Decisions](Engram/Decisions/) — consequential accepted choices and supersession history.
+- [Raw sources](Engram/Sources/Raw/) — immutable Markdown snapshots or locator records.
+- [Source records](Engram/Sources/Records/) — editable analysis linked to raw sources.
+- `Engram/INDEX.md` — generated local catalog; gitignored and not evidence.
+
+## Common actions
+
+- [Ask](docs/ASKING-TEAM-ENGRAM.md)
+- [Add or update Knowledge](docs/ADDING-OR-UPDATING-KNOWLEDGE.md)
+- [Ingest a source](docs/INGESTING-A-SOURCE.md)
+- [Audit](docs/AUDITING-TEAM-ENGRAM.md)
+- [Create or update a shared skill](docs/CREATING-OR-UPDATING-A-SHARED-SKILL.md)
+- [Publish](docs/PUBLISHING-A-CHANGE.md) and [merge](docs/MERGING-A-CHANGE.md)
 
 ## Maintenance
 
-- Do not turn this file into a full catalog.
-- After substantive file changes, run `python Tools/engram.py index` to refresh `Engram/INDEX.md`.
-- Use `python Tools/engram.py lint` to check structure and links.
+- Run local index generation before discovery-heavy work when the Index is stale or missing.
+- Run local lint before publication.
+- Do not add an operation log or turn this router into a full catalog; Git and GitLab preserve shared history.
+- Add a new corpus area only after real content demonstrates a navigation or lifecycle need.

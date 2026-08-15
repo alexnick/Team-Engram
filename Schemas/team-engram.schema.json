@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "common_required": [
+    "type",
+    "status",
+    "topics"
+  ],
+  "types": {
+    "knowledge": {
+      "directory": "Engram/Knowledge",
+      "required": [],
+      "statuses": [
+        "active",
+        "disputed",
+        "superseded",
+        "archived"
+      ],
+      "conditional_required": {
+        "status=superseded": [
+          "superseded_by"
+        ]
+      }
+    },
+    "decision": {
+      "directory": "Engram/Decisions",
+      "required": [
+        "id",
+        "date"
+      ],
+      "statuses": [
+        "accepted",
+        "rejected",
+        "superseded"
+      ],
+      "id_pattern": "^[A-Z][A-Z0-9]*(?:-[A-Z0-9]+)*-[0-9]{3,}$",
+      "conditional_required": {
+        "status=superseded": [
+          "superseded_by"
+        ]
+      }
+    },
+    "source-raw": {
+      "directory": "Engram/Sources/Raw",
+      "required": [
+        "source_type",
+        "retrieved",
+        "url_or_path"
+      ],
+      "statuses": [
+        "immutable"
+      ],
+      "conditional_required": {
+        "artifact_path=present": [
+          "content_hash"
+        ]
+      }
+    },
+    "source-record": {
+      "directory": "Engram/Sources/Records",
+      "required": [
+        "source_type",
+        "retrieved",
+        "raw_materials"
+      ],
+      "statuses": [
+        "ingested",
+        "archived"
+      ]
+    }
+  }
+}

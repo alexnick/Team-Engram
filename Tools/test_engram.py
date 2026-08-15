@@ -1,360 +1,284 @@
 from __future__ import annotations
 
 import io
+import json
 import re
 import tempfile
 import unittest
-from contextlib import redirect_stderr
-from datetime import date
+from contextlib import redirect_stdout
 from pathlib import Path
 from urllib.parse import unquote
 
 import engram  # pyright: ignore[reportImplicitRelativeImport]
-import product_sync  # pyright: ignore[reportImplicitRelativeImport]
 
 
-class FrontmatterParserTests(unittest.TestCase):
-    def test_parses_scalars_inline_lists_and_block_lists(self) -> None:
-        document = """---
+VALID_DOCUMENTS = {
+    "Knowledge/note.md": """---
 type: knowledge
-title: "A title"
-topics: [python, "personal knowledge"]
-sources:
-  - https://example.com/article
-  - Engram/Sources/example.md
+status: active
+topics: [operations]
 ---
 
-# Fallback title
+# Maintained Practice
 
-Body text.
-"""
+A reusable organizational practice.
+""",
+    "Decisions/decision.md": """---
+type: decision
+id: ORG-DEC-001
+date: 2026-08-15
+status: accepted
+topics: [operations]
+---
 
-        parsed = engram.parse_frontmatter(document)
+# Adopt the Practice
+""",
+    "Sources/Raw/article.md": """---
+type: source-raw
+status: immutable
+source_type: article
+retrieved: 2026-08-15
+url_or_path: https://example.com/article
+topics: [operations]
+---
 
+# Raw Article
+
+Original article text.
+""",
+    "Sources/Records/article-record.md": """---
+type: source-record
+status: ingested
+source_type: article
+retrieved: 2026-08-15
+raw_materials: ['[Raw article](../Raw/article.md)']
+topics: [operations]
+---
+
+# Article Record
+""",
+}
+
+
+def make_workspace(root: Path, documents: dict[str, str] | None = None) -> None:
+    schema_source = Path(__file__).parents[1] / "Schemas" / "team-engram.schema.json"
+    schema_target = root / "Schemas" / "team-engram.schema.json"
+    schema_target.parent.mkdir(parents=True, exist_ok=True)
+    schema_target.write_text(schema_source.read_text(encoding="utf-8"), encoding="utf-8")
+    for directory in ("Knowledge", "Decisions", "Sources/Raw", "Sources/Records"):
+        (root / "Engram" / directory).mkdir(parents=True, exist_ok=True)
+    for relative, content in (documents or {}).items():
+        path = root / "Engram" / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(content, encoding="utf-8")
+
+
+class SchemaTests(unittest.TestCase):
+    def test_schema_is_json_and_describes_all_supported_types(self) -> None:
+        schema_path = Path(__file__).parents[1] / "Schemas" / "team-engram.schema.json"
+        schema = json.loads(schema_path.read_text(encoding="utf-8"))
+
+        self.assertEqual(schema["schema_version"], 1)
+        self.assertEqual(schema["common_required"], ["type", "status", "topics"])
+        self.assertEqual(
+            set(schema["types"]),
+            {"knowledge", "decision", "source-raw", "source-record"},
+        )
+        self.assertEqual(schema["types"]["knowledge"]["statuses"], ["active", "disputed", "superseded", "archived"])
+        self.assertEqual(schema["types"]["decision"]["statuses"], ["accepted", "rejected", "superseded"])
+
+    def test_templates_use_supported_type_status_and_required_fields(self) -> None:
+        root = Path(__file__).parents[1]
+        templates = {
+            "Knowledge.md": "knowledge",
+            "Decision.md": "decision",
+            "Source-Raw.md": "source-raw",
+            "Source.md": "source-record",
+        }
+        schema = engram.load_schema(root)
+
+        for filename, expected_type in templates.items():
+            with self.subTest(filename=filename):
+                parsed = engram.parse_frontmatter((root / "Templates" / filename).read_text(encoding="utf-8"))
+                self.assertIsNone(parsed.error)
+                self.assertEqual(parsed.metadata["type"], expected_type)
+                required = set(schema["common_required"] + schema["types"][expected_type]["required"])
+                self.assertTrue(required.issubset(parsed.metadata))
+                self.assertIn(parsed.metadata["status"], schema["types"][expected_type]["statuses"])
+
+    def test_project_map_ticket_template_requires_qualified_id(self) -> None:
+        template = (Path(__file__).parents[1] / "Templates" / "Project-Map" / "TICKET.md").read_text(encoding="utf-8")
+        self.assertIn("PROJECT-001", template)
+        self.assertNotIn("PM-000", template)
+
+
+class FrontmatterTests(unittest.TestCase):
+    def test_parses_dependency_free_yaml_subset(self) -> None:
+        parsed = engram.parse_frontmatter("---\ntype: knowledge\ntopics:\n  - alpha\n  - 'two words'\n---\n# Title\n")
         self.assertTrue(parsed.has_frontmatter)
         self.assertIsNone(parsed.error)
-        self.assertEqual(parsed.metadata["type"], "knowledge")
-        self.assertEqual(parsed.metadata["title"], "A title")
-        self.assertEqual(parsed.metadata["topics"], ["python", "personal knowledge"])
-        self.assertEqual(
-            parsed.metadata["sources"],
-            ["https://example.com/article", "Engram/Sources/example.md"],
-        )
-        self.assertIn("# Fallback title", parsed.body)
+        self.assertEqual(parsed.metadata["topics"], ["alpha", "two words"])
+        self.assertEqual(parsed.body.strip(), "# Title")
 
-    def test_reports_unterminated_and_malformed_frontmatter(self) -> None:
-        unterminated = engram.parse_frontmatter("---\ntype: knowledge\n# no closing delimiter")
-        malformed = engram.parse_frontmatter("---\ntype knowledge\n---\n# Title")
+    def test_reports_malformed_frontmatter(self) -> None:
+        parsed = engram.parse_frontmatter("---\ntype knowledge\n---\n# Title\n")
+        self.assertIn("key: value", parsed.error or "")
+        self.assertEqual(parsed.error_line, 2)
 
-        self.assertEqual(unterminated.error, "unterminated YAML frontmatter")
-        self.assertIn("key: value", malformed.error or "")
-        self.assertEqual(malformed.error_line, 2)
+
+class LintTests(unittest.TestCase):
+    def test_valid_team_corpus_is_clean(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            make_workspace(root, VALID_DOCUMENTS)
+            self.assertEqual(engram.lint_workspace(root), [])
+
+    def test_common_required_fields_and_type_specific_status_are_errors(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            make_workspace(root, {"Knowledge/bad.md": "---\ntype: knowledge\nstatus: draft\n---\n# Bad\n"})
+            messages = [issue.message for issue in engram.lint_workspace(root)]
+            self.assertTrue(any("missing required field 'topics'" in message for message in messages))
+            self.assertTrue(any("invalid status 'draft'" in message for message in messages))
+
+    def test_unknown_type_and_wrong_directory_are_errors(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            make_workspace(root, {"Knowledge/bad.md": "---\ntype: decision\nid: ORG-001\ndate: 2026-08-15\nstatus: accepted\ntopics: [x]\n---\n# Bad\n"})
+            issues = engram.lint_workspace(root)
+            self.assertTrue(any("does not match directory" in issue.message for issue in issues))
+
+    def test_superseded_page_requires_superseded_by(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            make_workspace(root, {"Knowledge/old.md": "---\ntype: knowledge\nstatus: superseded\ntopics: [x]\n---\n# Old\n"})
+            self.assertTrue(any("superseded_by" in issue.message for issue in engram.lint_workspace(root)))
+
+    def test_decision_ids_are_valid_and_unique(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            first = VALID_DOCUMENTS["Decisions/decision.md"]
+            make_workspace(root, {"Decisions/one.md": first, "Decisions/two.md": first})
+            issues = engram.lint_workspace(root)
+            self.assertTrue(any("duplicate decision ID ORG-DEC-001" in issue.message for issue in issues))
+
+            (root / "Engram" / "Decisions" / "two.md").unlink()
+            (root / "Engram" / "Decisions" / "one.md").write_text(first.replace("ORG-DEC-001", "DEC"), encoding="utf-8")
+            self.assertTrue(any("invalid decision id" in issue.message for issue in engram.lint_workspace(root)))
+
+    def test_raw_artifact_requires_existing_path_and_content_hash(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            raw = VALID_DOCUMENTS["Sources/Raw/article.md"].replace("topics: [operations]", "artifact_path: article.txt\ntopics: [operations]")
+            make_workspace(root, {"Sources/Raw/article.md": raw})
+            messages = [issue.message for issue in engram.lint_workspace(root)]
+            self.assertTrue(any("artifact_path does not exist" in message for message in messages))
+            self.assertTrue(any("content_hash" in message for message in messages))
+
+    def test_unreferenced_raw_artifact_is_an_error(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            make_workspace(root)
+            artifact = root / "Engram" / "Sources" / "Raw" / "orphan.bin"
+            artifact.write_bytes(b"orphan")
+
+            issues = engram.lint_workspace(root)
+
+            self.assertTrue(any(issue.path == artifact and "no source-raw manifest" in issue.message for issue in issues))
+
+    def test_raw_gitkeep_is_not_treated_as_an_artifact(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            make_workspace(root)
+            (root / "Engram" / "Sources" / "Raw" / ".gitkeep").write_text("", encoding="utf-8")
+
+            self.assertEqual(engram.lint_workspace(root), [])
+
+    def test_article_scale_inline_markdown_snapshot_is_supported(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            article = VALID_DOCUMENTS["Sources/Raw/article.md"] + ("Article paragraph.\n\n" * 5000)
+            make_workspace(root, {"Sources/Raw/article.md": article})
+            self.assertEqual(engram.lint_workspace(root), [])
+
+    def test_source_record_requires_nonempty_raw_link_to_raw_directory(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            bad = VALID_DOCUMENTS["Sources/Records/article-record.md"].replace("['[Raw article](../Raw/article.md)']", "[]")
+            make_workspace(root, {"Sources/Records/record.md": bad})
+            self.assertTrue(any("raw_materials" in issue.message for issue in engram.lint_workspace(root)))
+
+    def test_broken_markdown_link_is_an_error(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            make_workspace(root)
+            readme = root / "README.md"
+            readme.write_text("# Readme\n\n[Missing](missing.md)\n", encoding="utf-8")
+            issues = engram.lint_workspace(root)
+            self.assertTrue(any(issue.path == readme and "broken relative link" in issue.message for issue in issues))
+
+    def test_knowledge_provenance_is_optional(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            make_workspace(root, {"Knowledge/note.md": VALID_DOCUMENTS["Knowledge/note.md"]})
+            self.assertFalse(any("provenance" in issue.message for issue in engram.lint_workspace(root)))
 
 
 class IndexTests(unittest.TestCase):
-    def test_index_is_stable_and_contains_resolvable_relative_links(self) -> None:
+    def test_index_only_scans_engram_and_is_deterministic(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             root = Path(temporary_directory)
-            knowledge = root / "Engram" / "Knowledge"
-            project = root / "Projects" / "Example Project"
-            knowledge.mkdir(parents=True)
-            project.mkdir(parents=True)
-            (knowledge / "alpha note.md").write_text(
-                "---\ntype: knowledge\ntitle: Alpha\nstatus: unprocessed\n"
-                "sources: [https://example.com]\n---\n\n"
-                "# Ignored H1\n\nFirst meaningful paragraph.\n",
-                encoding="utf-8",
-            )
-            (project / "CONTEXT.md").write_text(
-                "# Example Context\n\nProject summary.\n", encoding="utf-8"
-            )
+            make_workspace(root, VALID_DOCUMENTS)
+            (root / "Projects").mkdir()
+            (root / "Projects" / "project.md").write_text("# Must Not Appear\n", encoding="utf-8")
 
             first = engram.build_index(root)
             second = engram.build_index(root)
 
             self.assertEqual(first, second)
-            self.assertIn(engram.GENERATED_MARKER, first)
-            self.assertNotRegex(first, r"Generated at|\d{2}:\d{2}:\d{2}")
-            self.assertIn("status: `unprocessed`", first)
-            self.assertIn("First meaningful paragraph.", first)
+            self.assertNotIn("Must Not Appear", first)
+            self.assertNotIn("Projects/", first)
+            self.assertIn("topics: `operations`", first)
+            for destination in re.findall(r"\[[^]]+\]\(([^)]+)\)", first):
+                self.assertTrue((root / "Engram" / unquote(destination)).exists())
 
-            destinations = re.findall(r"\[[^]]+\]\(([^)]+)\)", first)
-            self.assertEqual(len(destinations), 2)
-            for destination in destinations:
-                resolved = root / "Engram" / unquote(destination)
-                self.assertTrue(resolved.exists(), destination)
-
-    def test_index_check_detects_stale_content_without_writing(self) -> None:
+    def test_index_write_and_check_do_not_rewrite_stable_content(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             root = Path(temporary_directory)
-            (root / "Engram" / "Knowledge").mkdir(parents=True)
-            (root / "Projects").mkdir()
-            (root / "Engram" / "Knowledge" / "note.md").write_text(
-                "# Knowledge\n\nSummary.\n", encoding="utf-8"
-            )
+            make_workspace(root, {"Knowledge/note.md": VALID_DOCUMENTS["Knowledge/note.md"]})
+            self.assertEqual(engram.update_index(root), 0)
             index_path = root / "Engram" / "INDEX.md"
-            index_path.write_text("stale\n", encoding="utf-8")
-
-            error_output = io.StringIO()
-            with redirect_stderr(error_output):
-                result = engram.update_index(root, check=True)
-
-            self.assertEqual(result, 1)
-            self.assertIn("INDEX.md is stale", error_output.getvalue())
-            self.assertEqual(index_path.read_text(encoding="utf-8"), "stale\n")
+            before = index_path.read_bytes()
+            self.assertEqual(engram.update_index(root, check=True), 0)
+            self.assertEqual(index_path.read_bytes(), before)
 
 
-class LintTests(unittest.TestCase):
-    def test_non_english_provenance_heading_is_supported_without_changing_defaults(self) -> None:
+class StatusAndCliTests(unittest.TestCase):
+    def test_status_has_only_team_corpus_counts(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             root = Path(temporary_directory)
-            knowledge = root / "Engram" / "Knowledge"
-            knowledge.mkdir(parents=True)
-            (root / "Projects").mkdir()
-            heading = "\u041f\u0440\u043e\u0438\u0441\u0445\u043e\u0436\u0434\u0435\u043d\u0438\u0435"
-            note = knowledge / "note.md"
-            note.write_text(
-                "---\ntype: knowledge\nstatus: active\n---\n\n"
-                f"# Note\n\n## {heading}\n\nUser-provided source record.\n",
-                encoding="utf-8",
-            )
+            make_workspace(root, VALID_DOCUMENTS)
+            lines = engram.status_lines(root)
+            self.assertEqual(lines, ["Knowledge: 1", "Decisions: 1", "Sources: raw=1, records=1"])
+            self.assertNotRegex("\n".join(lines), r"Captures|Inbox|Sessions|Health|Projects")
 
-            issues = engram.lint_workspace(root)
+    def test_cli_has_index_lint_status_and_no_log_command(self) -> None:
+        parser = engram.build_parser()
+        help_text = parser.format_help()
+        self.assertIn("index", help_text)
+        self.assertIn("lint", help_text)
+        self.assertIn("status", help_text)
+        self.assertNotIn("log", help_text)
 
-            self.assertFalse([issue for issue in issues if "provenance" in issue.message])
-
-    def test_broken_relative_link_is_an_error(self) -> None:
+    def test_lint_cli_reports_exact_clean_summary(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             root = Path(temporary_directory)
-            knowledge = root / "Engram" / "Knowledge"
-            (root / "Projects").mkdir(parents=True)
-            knowledge.mkdir(parents=True)
-            note = knowledge / "note.md"
-            note.write_text(
-                "# Note\n\n[Missing document](missing.md)\n", encoding="utf-8"
-            )
-
-            issues = engram.lint_workspace(root)
-
-            broken = [issue for issue in issues if "broken relative link" in issue.message]
-            self.assertEqual(len(broken), 1)
-            self.assertEqual(broken[0].severity, "ERROR")
-            self.assertEqual(broken[0].path, note)
-            self.assertEqual(broken[0].line, 3)
-
-    def test_broken_link_in_root_document_is_an_error(self) -> None:
-        with tempfile.TemporaryDirectory() as temporary_directory:
-            root = Path(temporary_directory)
-            (root / "Engram").mkdir()
-            readme = root / "README.md"
-            readme.write_text("# Workspace\n\n[Missing guide](missing.md)\n", encoding="utf-8")
-
-            issues = engram.lint_workspace(root)
-
-            broken = [issue for issue in issues if "broken relative link" in issue.message]
-            self.assertEqual(len(broken), 1)
-            self.assertEqual(broken[0].path, readme)
-
-    def test_external_and_existing_relative_links_pass(self) -> None:
-        with tempfile.TemporaryDirectory() as temporary_directory:
-            root = Path(temporary_directory)
-            knowledge = root / "Engram" / "Knowledge"
-            (root / "Projects").mkdir(parents=True)
-            knowledge.mkdir(parents=True)
-            (knowledge / "target.md").write_text("# Target\n", encoding="utf-8")
-            (knowledge / "note.md").write_text(
-                "# Note\n\n[Target](target.md) and [Web](https://example.com).\n",
-                encoding="utf-8",
-            )
-
-            issues = engram.lint_workspace(root)
-
-            self.assertFalse([issue for issue in issues if issue.severity == "ERROR"])
-
-    def test_binary_artifact_with_valid_manifest_passes(self) -> None:
-        with tempfile.TemporaryDirectory() as temporary_directory:
-            root = Path(temporary_directory)
-            raw = root / "Engram" / "Sources" / "Raw"
-            raw.mkdir(parents=True)
-            (raw / "source.bin").write_bytes(b"\x00\xff\x10binary")
-            (raw / "source.md").write_text(
-                "---\nsource_url: https://example.com/source\nretrieved_at: 2026-07-14\n"
-                "artifact_path: source.bin\ncontent_hash: sha256:test\n---\n\n# Source manifest\n",
-                encoding="utf-8",
-            )
-
-            issues = engram.lint_workspace(root)
-
-            self.assertFalse([issue for issue in issues if issue.severity == "ERROR"])
-            self.assertFalse([issue for issue in issues if "content_hash" in issue.message])
-
-    def test_artifact_without_content_hash_is_only_a_warning(self) -> None:
-        with tempfile.TemporaryDirectory() as temporary_directory:
-            root = Path(temporary_directory)
-            raw = root / "Engram" / "Sources" / "Raw"
-            raw.mkdir(parents=True)
-            (raw / "source.bin").write_bytes(b"\x00\xffbinary")
-            (raw / "source.md").write_text(
-                "---\nsource_url: https://example.com/source\nretrieved_at: 2026-07-14\n"
-                "artifact_path: source.bin\n---\n\n# Source manifest\n",
-                encoding="utf-8",
-            )
-
-            issues = engram.lint_workspace(root)
-
-            self.assertFalse([issue for issue in issues if issue.severity == "ERROR"])
-            hash_warnings = [issue for issue in issues if "content_hash" in issue.message]
-            self.assertEqual(len(hash_warnings), 1)
-            self.assertEqual(hash_warnings[0].severity, "WARN")
-
-    def test_locator_only_manifest_does_not_require_artifact(self) -> None:
-        with tempfile.TemporaryDirectory() as temporary_directory:
-            root = Path(temporary_directory)
-            raw = root / "Engram" / "Sources" / "Raw"
-            raw.mkdir(parents=True)
-            (raw / "locator.md").write_text(
-                "---\nsource_url: https://example.com/source\nretrieved_at: 2026-07-14\n---\n\n"
-                "# Locator-only manifest\n",
-                encoding="utf-8",
-            )
-
-            issues = engram.lint_workspace(root)
-
-            self.assertFalse([issue for issue in issues if issue.severity == "ERROR"])
-
-    def test_binary_artifact_without_manifest_is_an_error(self) -> None:
-        with tempfile.TemporaryDirectory() as temporary_directory:
-            root = Path(temporary_directory)
-            raw = root / "Engram" / "Sources" / "Raw"
-            raw.mkdir(parents=True)
-            artifact = raw / "orphan.pdf"
-            artifact.write_bytes(b"%PDF-\x00\xff")
-
-            issues = engram.lint_workspace(root)
-
-            orphan_errors = [issue for issue in issues if "has no Markdown manifest" in issue.message]
-            self.assertEqual(len(orphan_errors), 1)
-            self.assertEqual(orphan_errors[0].severity, "ERROR")
-            self.assertEqual(orphan_errors[0].path, artifact)
-
-    def test_manifest_with_missing_artifact_is_an_error(self) -> None:
-        with tempfile.TemporaryDirectory() as temporary_directory:
-            root = Path(temporary_directory)
-            raw = root / "Engram" / "Sources" / "Raw"
-            raw.mkdir(parents=True)
-            manifest = raw / "missing.md"
-            manifest.write_text(
-                "---\nsource_url: https://example.com/source\nretrieved_at: 2026-07-14\n"
-                "artifact_path: missing.bin\n---\n\n# Missing artifact\n",
-                encoding="utf-8",
-            )
-
-            issues = engram.lint_workspace(root)
-
-            missing_errors = [issue for issue in issues if "artifact_path does not exist" in issue.message]
-            self.assertEqual(len(missing_errors), 1)
-            self.assertEqual(missing_errors[0].severity, "ERROR")
-            self.assertEqual(missing_errors[0].path, manifest)
-
-    def test_source_record_raw_materials_is_a_locator(self) -> None:
-        with tempfile.TemporaryDirectory() as temporary_directory:
-            root = Path(temporary_directory)
-            sources = root / "Engram" / "Sources"
-            sources.mkdir(parents=True)
-            (sources / "record.md").write_text(
-                "---\ntype: source\nraw_materials: [Raw/source.md]\n---\n\n# Source record\n",
-                encoding="utf-8",
-            )
-
-            issues = engram.lint_workspace(root)
-
-            self.assertFalse([issue for issue in issues if "no raw locator" in issue.message])
-
-
-class LogTests(unittest.TestCase):
-    def test_log_writes_metadata_only_and_normalizes_paths(self) -> None:
-        with tempfile.TemporaryDirectory() as temporary_directory:
-            root = Path(temporary_directory)
-            engram.append_log(
-                root,
-                operation="sync",
-                title="Update context",
-                files=[str(root / "Engram" / "Knowledge" / "note.md")],
-                note="No file contents included",
-                today=date(2026, 7, 14),
-            )
-
-            content = (root / "Engram" / "LOG.md").read_text(encoding="utf-8")
-            self.assertIn("## [2026-07-14] sync | Update context", content)
-            self.assertIn("`Engram/Knowledge/note.md`", content)
-            self.assertIn("Note: No file contents included", content)
-
-    def test_external_absolute_path_is_rejected_without_writing(self) -> None:
-        with tempfile.TemporaryDirectory() as temporary_directory:
-            root = Path(temporary_directory)
-            external = root.parent / "outside-workspace.bin"
-
-            with self.assertRaisesRegex(ValueError, "outside workspace"):
-                engram.append_log(
-                    root,
-                    operation="sync",
-                    title="Reject external path",
-                    files=[str(external.resolve())],
-                )
-
-            self.assertFalse((root / "Engram" / "LOG.md").exists())
-
-    def test_log_field_lengths_are_bounded(self) -> None:
-        with tempfile.TemporaryDirectory() as temporary_directory:
-            root = Path(temporary_directory)
-            with self.assertRaises(ValueError):
-                engram.append_log(root, operation="o" * 41, title="Title")
-            with self.assertRaises(ValueError):
-                engram.append_log(root, operation="sync", title="t" * 161)
-            with self.assertRaises(ValueError):
-                engram.append_log(root, operation="sync", title="Title", note="n" * 241)
-
-            self.assertFalse((root / "Engram" / "LOG.md").exists())
-
-
-class ProductSyncTests(unittest.TestCase):
-    def test_identical_roots_are_rejected(self) -> None:
-        with tempfile.TemporaryDirectory() as temporary_directory:
-            root = Path(temporary_directory)
-
-            with self.assertRaisesRegex(ValueError, "must be different"):
-                product_sync.validate_roots(root, root)
-
-    def test_nested_roots_are_rejected(self) -> None:
-        with tempfile.TemporaryDirectory() as temporary_directory:
-            root = Path(temporary_directory)
-            child = root / "child"
-            child.mkdir()
-
-            with self.assertRaisesRegex(ValueError, "must not be nested"):
-                product_sync.validate_roots(root, child)
-            with self.assertRaisesRegex(ValueError, "must not be nested"):
-                product_sync.validate_roots(child, root)
-
-    def test_directory_copy_preserves_target_specific_files(self) -> None:
-        with tempfile.TemporaryDirectory() as temporary_directory:
-            root = Path(temporary_directory)
-            source = root / "source"
-            target = root / "target"
-            (source / "Templates").mkdir(parents=True)
-            (target / "Templates").mkdir(parents=True)
-            (source / "Templates" / "Product.md").write_text("product\n", encoding="utf-8")
-            private_file = target / "Templates" / "Private.md"
-            private_file.write_text("private\n", encoding="utf-8")
-
-            result = product_sync.copy_path(source, target, "Templates", dry_run=False)
-
-            self.assertEqual(result, "copied: Templates")
-            self.assertEqual(
-                (target / "Templates" / "Product.md").read_text(encoding="utf-8"),
-                "product\n",
-            )
-            self.assertEqual(private_file.read_text(encoding="utf-8"), "private\n")
+            make_workspace(root)
+            output = io.StringIO()
+            with redirect_stdout(output):
+                result = engram.main(["lint"], root=root)
+            self.assertEqual(result, 0)
+            self.assertEqual(output.getvalue(), "Lint: 0 error(s), 0 warning(s)\n")
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 ---
 name: writing-great-skills
-description: Use when writing or editing Engram skills.
+description: Use when writing or editing shared Team Engram skills.
 disable-model-invocation: true
 ---
 

@@ -1,30 +1,36 @@
-# Personal Engram Context
+---
+type: context
+status: active
+topics: [team-engram, knowledge-management]
+---
 
-Last updated: YYYY-MM-DD
+# Team Engram Corpus Context
 
 ## Purpose
 
-This Engram stores durable personal knowledge, ideas, source-derived understanding, project context, decisions, and factual records.
+This corpus stores reusable organizational knowledge that remains useful without an originating project repository attached. It begins empty and acquires content and structure through real use.
 
-## Current Priorities
+## Current state
 
-- Start using Capture, Query, Explore, Sync, Review, Ingest, Lint, and Checkpoint in real work.
-- Preserve raw evidence separately from editable derived knowledge.
-- Keep the generated Index, append-only Log, provenance links, and Git checkpoints useful without creating maintenance friction.
+- `Knowledge/` holds maintained reusable synthesis.
+- `Decisions/` holds consequential accepted decisions.
+- `Sources/Raw/` holds immutable Markdown snapshots or stable locator records.
+- `Sources/Records/` holds editable source analysis linked to raw material.
+- `INDEX.md` is generated locally for discovery and is ignored by Git.
 
-## Current Interests
+## Working boundaries
 
-- Add interests here through approved Sync, not by guessing from chat.
+- Project-specific implementation truth remains in project repositories.
+- Original organizational Knowledge may be authored without external proof.
+- Provenance is required when a page claims derivation, verification, quotation, or attribution from named evidence.
+- Complete article-scale text may be preserved as a Markdown raw snapshot; large or binary artifacts remain external.
+- Merged Knowledge is active unless explicitly disputed, superseded, or archived.
+- Structure emerges from demonstrated content pressure; the corpus does not begin with predefined domains.
 
-## Working Principles
+## Collaboration
 
-- Preserve raw thoughts and source evidence without rewriting their payloads.
-- Maintain conclusions, decisions, and current context in the editable derived layer.
-- Use `Engram/INDEX.md` for content discovery, `Engram/LOG.md` for operation search, and Git for rollback and file history.
-- Synchronize agreed knowledge instead of storing complete conversations.
+Cursor prepares and validates focused local changes. Explicit `Publish this change` confirmation is required before commit, push, and GitLab Merge Request creation or update. Merge is a separate human-triggered action. Git and GitLab provide shared history; the corpus has no operation log.
 
-## Open Questions
+## Navigation
 
-- Which operations feel natural in daily use?
-- Where does the approval flow create friction?
-- What should this Brain help with first?
+Use the repository [Context Map](../CONTEXT-MAP.md) as the committed router and regenerate the local `INDEX.md` when it is missing or stale. The Index supports discovery but is not evidence for substantive claims.

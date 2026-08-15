@@ -1,40 +1,27 @@
 ---
 type: source-raw
 status: immutable
-source_type: unknown # article, book, paper, video, podcast, document, locator, etc.
-title: ""
-author: ""
-url_or_path: ""
-artifact_path: "" # workspace-relative immutable sidecar artifact path, when stored locally
-published: unknown
+source_type: article
 retrieved: YYYY-MM-DD
-snapshot_status: full # full, partial, locator-only
-content_hash: "" # optional when a local snapshot exists
+url_or_path: https://example.com/source
+topics: []
+# artifact_path: Engram/Sources/Raw/YYYY-MM-DD--source.ext
+# content_hash: sha256:...
 ---
 
 # Raw Source: Title
 
 > [!IMPORTANT]
-> The entire manifest—frontmatter and body—is immutable after initial creation. If the source or metadata changes, preserve a new dated artifact or manifest. Never add future derived-record backlinks to this raw file.
+> This raw record is immutable after creation. A changed source or corrected snapshot gets a new dated raw record.
 
-## Locator
+## Source Identity
 
-*Canonical URL or local path and any stable source identifier.*
-
-## Artifact Sidecar
-
-*For a binary or local artifact, store the immutable artifact beside this Markdown manifest with the same dated slug and its original extension: `YYYY-MM-DD--slug.md` for the manifest and, for example, `YYYY-MM-DD--slug.pdf` for the artifact. Set `artifact_path` to the workspace-relative artifact path, such as `Engram/Sources/Raw/domain/YYYY-MM-DD--slug.pdf`. The manifest and artifact are one immutable raw-source unit. Leave `artifact_path` empty for `locator-only` records.*
-
-*Derived records own the one-way links to this manifest or its artifact. Do not edit the raw manifest later to add backlinks.*
-
-## Snapshot Scope
-
-*State exactly what was preserved. For `locator-only`, explicitly say that the full source content was not saved.*
+*Record stable identifiers, access limitations, and retrieval context.*
 
 ## Raw Material
 
-*Insert unmodified textual content here only when it is stored inline. For binary or separate local content, use the immutable `artifact_path` sidecar instead. Never place derived summaries or interpretations here.*
+*For an article-scale text source, preserve the complete text here as Markdown. Keep PDFs, archives, video, and other clone-heavy binaries outside Team Engram and use this page as an immutable locator.*
 
 ## Retrieval Notes
 
-*Access date, retrieval limitations, format, and integrity details. Do not claim access to unavailable content.*
+*Record format, snapshot scope, omissions, and integrity details. If `artifact_path` names a repository artifact, `content_hash` is required.*

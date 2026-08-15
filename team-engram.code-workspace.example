@@ -1,0 +1,13 @@
+{
+  "folders": [
+    {
+      "name": "Team Engram",
+      "path": "."
+    },
+    {
+      "name": "Example Project",
+      "path": "../your-project"
+    }
+  ],
+  "settings": {}
+}

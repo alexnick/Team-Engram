@@ -1,89 +1,105 @@
-# Quickstart
+# Team Engram Quickstart
 
-Engram keeps durable knowledge in Markdown. Chat is where you think; the Engram is what survives the conversation.
+This path assumes no Git or AI-agent experience. Cursor performs the mechanical work and explains what it finds. Normal use does not require you to type Git commands.
 
-## 1. Open the workspace
+## 1. Clone and open Team Engram
 
-Clone the repository and open the folder in an agent harness that reads `AGENTS.md`.
+In Cursor, choose **Clone Repository**, paste your team's GitLab repository URL, choose a local folder, and open the cloned repository.
 
-```bash
-git clone https://github.com/alexnick/Engram.git engram
-cd engram
-```
+If the repository is already on your machine, choose **Open Folder** and select it.
 
-The agent should load the workspace rules automatically. You should not need to explain the storage model in every session.
-
-## 2. Preserve a thought
-
-Say:
+Then ask Cursor:
 
 ```text
-Save this exact thought: optimization can remove the choices that make a game interesting.
+Read the Team Engram instructions for this repository. Confirm that you can see the shared skills under .agents/skills, including writing-great-skills. Do not change any files.
 ```
 
-Or use the short command:
+**Expected result:** Cursor identifies Team Engram as the stable repository, reports the discovered skills, and makes no changes.
+
+If skill discovery fails, stop and follow [Cursor setup](docs/CURSOR-SETUP.md).
+
+## 2. Check the empty or current corpus
+
+Ask:
 
 ```text
-/capture Optimization can remove the choices that make a game interesting.
+Check Team Engram's local status, regenerate the local Index if needed, and run the deterministic audit. Do not fix or publish anything. Summarize the result in plain English.
 ```
 
-Expected result: a new raw capture under `Engram/Inbox/`. The original wording remains unchanged. The capture is evidence of what you said, not proof that the statement is true.
+**Expected result:** `Engram/INDEX.md` exists locally but does not appear as a change for publication. Cursor reports whether lint passed and whether unrelated local changes already exist.
 
-## 3. Ask the Engram
+If unexplained changes exist, do not let Cursor reset or hide them. Use [Abandoning or recovering a change](docs/ABANDONING-OR-RECOVERING-A-CHANGE.md).
+
+## 3. Ask Team Engram
 
 ```text
-What does the Engram know about optimization and player choice? Link the pages you use.
+What does Team Engram currently know about reviewing shared knowledge? Link every maintained page and source record you use. If the repository does not contain an answer, say so clearly. Do not change files.
 ```
 
-Query is read-only. It should cite durable pages and say when the Engram does not yet contain an answer.
+**Expected result:** a read-only answer grounded in repository pages, or a clear statement that the corpus does not yet answer the question.
 
-## 4. Develop the idea
+Learn more in [Ask Team Engram](docs/ASKING-TEAM-ENGRAM.md).
+
+## 4. Prepare one local Knowledge change
+
+Choose a small reusable fact or practice that is appropriate for this repository's audience. For a clean public starter, use this generic example:
 
 ```text
-Help me explore when optimization reduces meaningful choice. Ask one question at a time.
+Prepare a Team Engram Knowledge page explaining that a shared glossary should define unfamiliar collaboration terms in plain language. Search for an existing canonical page first. Make only the focused local change, regenerate the local Index, run validation, and show me the changed files and semantic summary. Do not commit, push, create a Merge Request, or merge.
 ```
 
-Explore may keep a temporary session note, but it does not silently turn conclusions into durable knowledge.
+**Expected result:** Cursor creates or updates one Knowledge page on a focused branch, validates it locally, and stops with a reviewable summary. The request authorizes local preparation only.
 
-For a larger effort, start a Project Map instead:
+Read [Add or update Knowledge](docs/ADDING-OR-UPDATING-KNOWLEDGE.md) before using real content.
+
+## 5. Review before publication
+
+Check Cursor's summary and open the changed Markdown file. Confirm that:
+
+- the content is reusable outside one project;
+- it contains no secret, unintended personal data, or material outside this repository's authorized audience;
+- the diff contains only the intended files;
+- local validation passed, or every failure is explained;
+- `Engram/INDEX.md` is not included.
+
+To revise, say:
 
 ```text
-Create a project map for redesigning this game system from high-level goals to an implementation plan.
+Revise the local change as follows: <your correction>. Re-run validation and show the updated summary. Do not publish.
 ```
 
-## 5. Save the result
+To discard or pause it, use [Abandoning or recovering a change](docs/ABANDONING-OR-RECOVERING-A-CHANGE.md).
 
-When the discussion reaches a useful conclusion:
+## 6. Publish to GitLab
+
+When the local change is correct, say exactly:
 
 ```text
-Show me a Sync proposal for the durable changes. Do not write anything until I approve it.
+Publish this change.
 ```
 
-The agent should name the files and claims it wants to change. Approve all, approve selected items, revise the proposal, or reject it.
+**Confirmation boundary:** this authorizes Cursor to commit the focused change, push its branch, and create or update a GitLab Merge Request. It does **not** authorize merge.
 
-## 6. Check the workspace
+**Expected result:** Cursor returns the Merge Request link, branch name, commit summary, and final local validation results. If automatic MR creation is unavailable, Cursor should push the branch and give you the exact GitLab fallback steps without inventing a link.
 
-```bash
-python Tools/engram.py status
-python Tools/engram.py index
-python Tools/engram.py lint
-python Tools/test_engram.py
-```
+See [Publishing a change](docs/PUBLISHING-A-CHANGE.md).
 
-`Engram/INDEX.md` is generated. Do not edit it by hand.
+## 7. Review and self-merge
 
-## What to say when you are unsure
+Open the Merge Request in GitLab, review the diff, and optionally ask a peer to review. If it is correct, use GitLab's **Squash commits** and **Delete source branch** options, then click **Merge** yourself.
+
+Merge is deliberately separate from publication. Cursor must not merge because you said `Publish this change`.
+
+See [Merging a change](docs/MERGING-A-CHANGE.md).
+
+## 8. Refresh your local copy
+
+After GitLab shows the Merge Request as merged, ask:
 
 ```text
-I do not know whether this should be a capture, an exploration, or a durable update. Choose the safest workflow and explain why.
+Update my local Team Engram main branch from GitLab using a fast-forward-only update. Remove the merged local branch only if it is safe. Do not discard unrelated work.
 ```
 
-```text
-Show me exactly what you plan to write before you change the Engram.
-```
+**Expected result:** local `main` contains the merged page, the obsolete local branch is removed when safe, the local Index is refreshed, and the working tree is clean except for explained local-only state.
 
-```text
-List the files changed in this session and explain each change.
-```
-
-Next: [User Guide](USER-GUIDE.md).
+Next: [User Guide](USER-GUIDE.md) or the [task guide index](docs/README.md).

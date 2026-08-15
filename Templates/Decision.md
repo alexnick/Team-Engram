@@ -1,36 +1,38 @@
 ---
 type: decision
-id: DEC-XXX
+id: PROJECT-DEC-001
 date: YYYY-MM-DD
-status: proposed # proposed, accepted, rejected, deprecated, superseded
+status: accepted
+topics: []
+# superseded_by: ""    # Required only when status is superseded.
 ---
 
 # Decision Title
 
 ## Context
 
-*What is the problem or situation requiring a decision? What background context is important?*
+*What situation required a decision?*
 
 ## Decision
 
-*A clear, concise statement of the chosen path.*
+*State the accepted or deliberately rejected choice clearly.*
 
 ## Alternatives
 
-*What other options were considered? Why were they not chosen?*
+*Options considered and why they were not selected.*
 
 ## Rationale
 
-*Why is the selected decision the best path forward?*
+*Why this outcome was chosen.*
 
 ## Consequences
 
-*What are the immediate and long-term impacts of this decision? What new constraints or requirements does it introduce?*
+*Immediate and longer-term effects, constraints, and follow-up work.*
 
 ## Revisit Conditions
 
-*When or under what circumstances should this decision be re-evaluated?*
+*Conditions that should trigger reconsideration.*
 
-## Related Contexts
+## Related Knowledge
 
-*Links to relevant CONTEXT.md files or Project pages.*
+*Links to relevant Knowledge, Decisions, or source records.*

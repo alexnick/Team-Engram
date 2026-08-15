@@ -1,65 +1,27 @@
 ---
 name: ingest-source
-description: Use to preserve an external source and derive source-grounded knowledge with provenance.
+description: Use when preserving a source and deriving reusable knowledge.
 ---
 
 # Ingest Source
 
-## Goal
-
-Preserve verifiable source provenance and produce approved reusable knowledge rather than a disposable summary.
-
-## Storage Contract
-
-Use two layers:
-
-* `Engram/Sources/Raw/<domain>/...` for an immutable locator manifest and, when accessible and permitted, an immutable snapshot or artifact;
-* `Engram/Sources/Records/<domain>/YYYY-MM-DD--short-source-title.md` for the editable derived source record.
-
-A raw locator manifest records the original URL or path, retrieval timestamp, retrieval method, artifact filename and checksum when available, and access or licensing limitations. It must not claim inaccessible content was read. Never overwrite a raw artifact or manifest; create a dated version or addendum for a later retrieval. The derived source record references the manifest one-way. Never require or add a backlink to an immutable raw manifest after creation.
+Preserve source identity and retrieved material, create an editable source record, and integrate only warranted reusable knowledge. Publication is a later, explicit boundary.
 
 ## Procedure
 
-1. Determine whether the source is accessible. Never claim to have read content that was not accessed.
-2. Establish the user's ingestion goal with at most one concise question when it is not obvious.
-3. Choose the domain and inspect `Engram/INDEX.md` for an existing source record and relevant canonical pages.
-4. Preserve the locator manifest and available artifact in `Engram/Sources/Raw/<domain>/`.
-5. For long sources, inspect structure first and extract only the sections relevant to the goal.
-6. Prepare a proposal for a derived source record under `Engram/Sources/Records/<domain>/` with title, author, source type, publication date, ingestion date, a one-way raw-manifest link, relevant sections, why it matters, and project relationships. Do not write derived claims yet.
-7. Separate explicitly:
+1. Load `publish-team-engram-change` and complete its preparation checks. Confirm the source was actually accessed; never claim inaccessible content was read.
+2. Establish the ingestion goal from the request. Ask one concise question only when the intended use is genuinely unclear.
+3. Regenerate the ignored Index and search for an existing source record and related Knowledge before creating files.
+4. Preserve one immutable raw record under `Engram/Sources/Raw/`:
+   - store an ordinary article-scale text source as a Markdown snapshot when accessible and permitted; or
+   - store a Markdown locator for large, binary, restricted, or externally retained material.
+5. Record source type, retrieval date, URL or path, and topics. Record `artifact_path` and `content_hash` when an artifact is stored. A later retrieval creates a new dated record; never rewrite the old payload to represent changed content.
+6. Create or update an editable record under `Engram/Sources/Records/` that links to at least one raw snapshot or locator. Separate direct claims, evidence or method, attributed opinion, quotations with locators, limitations, contradictions, and agent inference.
+7. Decide whether reusable synthesis warrants a Knowledge update. Search for the canonical page first. It is valid to report `Knowledge changes: none`.
+8. Keep project-specific implications in the project repository and publish that repository independently.
+9. Run `python Tools/engram.py index` and `python Tools/engram.py lint`.
+10. Use `publish-team-engram-change` to summarize raw records, source records, optional Knowledge changes, validation, and open questions, then stop for explicit publication confirmation.
 
-   * direct source claims;
-   * evidence and method;
-   * author opinion;
-   * quotations with exact locations;
-   * user interpretation;
-   * agent inference.
-8. Determine whether reusable standalone knowledge or a project change warrants a canonical page. If not, plan to report `Canonical pages: none needed`. If warranted, locate the existing canonical page before proposing a new standalone concept or entity.
-9. Present a compact proposal covering every derived source-record claim, interpretation, and any canonical semantic change. Obtain approval before writing any derived claims.
-10. Apply only the approved semantic scope. Add a standard Markdown link from the derived source record to the raw manifest, never the reverse. Add reciprocal backlinks only among editable derived pages.
-11. Record contradictions and open questions explicitly. Use `None found` only after checking.
-12. Keep `Engram/INDEX.md` complete for all navigable corpus pages created by the ingest. Append a `Engram/LOG.md` entry containing only date, operation, a short non-sensitive title, affected workspace-relative paths, and an optional bounded non-sensitive note. Never include raw payloads, excerpts, or external absolute paths.
-13. Route every project-semantic or project-context update through `sync-engram`; source relevance alone is not approval to change a project.
+## Completion
 
-## Extraction Rules
-
-* Preserve quote text and page, chapter, section, paragraph, or timestamp when available.
-* Never invent quotation text, bibliographic data, or locations.
-* A canonical summary does not outrank its source evidence.
-* Keep limitations, counterevidence, and unresolved contradictions visible.
-* When approved reusable standalone knowledge exists, do not leave it trapped only in the source record. Do not manufacture a canonical page when none is warranted.
-
-## Definition of Done
-
-Do not report ingestion complete until all items are accounted for:
-
-1. immutable raw locator manifest and artifact when accessible and permitted;
-2. approved derived source record, including approval for all derived claims;
-3. approved canonical pages when reusable standalone knowledge or a project change warrants them, otherwise explicit `Canonical pages: none needed`;
-4. one-way derived-record link to the immutable raw manifest, plus real standard Markdown links and reciprocal backlinks only among editable derived pages;
-5. complete `Engram/INDEX.md` entries for navigable corpus pages, including the raw manifest;
-6. policy-conforming non-sensitive `Engram/LOG.md` operation entry;
-7. explicit contradictions and open questions;
-8. project semantic changes proposed through Sync rather than silently applied.
-
-Report inaccessible artifacts or deferred source-record approval as incomplete items. A completed significant ingest may justify proposing `checkpoint-engram`, but never creates a commit implicitly.
+Account for source access, every raw and derived file, hashes for stored artifacts, citations and locators, contradictions, optional Knowledge integration, and validation. Do not report complete when required material is inaccessible or a record is missing.

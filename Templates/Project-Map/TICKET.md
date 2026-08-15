@@ -10,7 +10,9 @@ blocked_by: []
 language: en
 ---
 
-# PM-000 — Ticket title
+# PROJECT-001 — Ticket title
+
+<!-- Replace PROJECT with a stable project-qualified prefix. Generic IDs such as PM-001 are not allowed. -->
 
 ## Question
 
@@ -18,7 +20,7 @@ The one decision, investigation, prototype reaction, or preparatory task this ti
 
 ## Context
 
-Only the context needed to resolve this ticket. Link the project map, existing specs, prior decisions, source records, code audit notes, or prototypes as needed.
+Only the context needed to resolve this ticket. Link the project map, existing specifications, prior decisions, source records, code audit notes, or prototypes as needed.
 
 ## Acceptance criteria
 
@@ -26,7 +28,7 @@ This ticket is resolved when:
 
 - The decision or finding is stated clearly.
 - Consequences for the project map are identified.
-- Any required canonical project updates are proposed through Sync.
+- Any required canonical project updates are proposed through the approved synchronization workflow.
 - New tickets, blocked items, graduated fog, and out-of-scope rulings are listed if discovered.
 
 ## Working notes
@@ -44,4 +46,4 @@ Pending.
 - Blocked:
 - Fog graduated:
 - Out of scope:
-- Canonical files to update through Sync:
+- Canonical files to update:

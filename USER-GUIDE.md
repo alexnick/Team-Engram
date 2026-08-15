@@ -1,227 +1,92 @@
-# User Guide
+# Team Engram User Guide
 
-Engram is a Markdown knowledge base maintained with an AI agent. It stores evidence, current understanding, decisions, and project state without treating chat history as permanent memory.
+Team Engram is a shared Markdown knowledge corpus operated primarily through Cursor. This guide explains the mental model and routes each task to one detailed guide. The [Team Engram Protocol](Protocols/Team-Engram-Protocol.md) is the authoritative source for storage, lifecycle, safety, and collaboration rules.
 
-## The three layers
+## The simple model
 
-### Raw evidence
+### Maintained knowledge
 
-Raw evidence preserves what arrived:
+`Engram/Knowledge/` contains reusable organizational synthesis. A page may be independently authored; it does not need an external source merely to be useful. If it claims to derive from, verify against, quote, or attribute a named source, it must link to provenance.
 
-- exact user wording;
-- source files and retrieval manifests;
-- dated observations and records.
+### Decisions
 
-Raw payloads are append-only. A correction becomes an addendum or a derived page; it does not replace the original.
+`Engram/Decisions/` records consequential accepted choices. A decision should have a stable identity and preserve supersession relationships when a later decision replaces it.
 
-### Derived knowledge
+### Sources
 
-Derived pages hold the current model:
+`Engram/Sources/Raw/` preserves immutable Markdown snapshots or stable locator records. `Engram/Sources/Records/` contains editable analysis of those sources. A raw source is evidence of what a source contained, not automatic proof that every claim is true.
 
-- knowledge;
-- decisions;
-- context;
-- entities and events;
-- source records;
-- project documents.
+Complete article-scale text—including multi-screen Confluence content—may be stored as Markdown. Large or binary artifacts remain external.
 
-These pages may change when understanding changes. Important claims should point back to their evidence.
+### Shared skills
 
-### Operations
+`.agents/skills/` contains reusable agent behavior that should travel with Team Engram. Project-only build, deployment, coding, and domain workflows stay in their project repositories.
 
-Operations define how an agent reads or changes the workspace. Raw preservation can happen on request. Changes to durable meaning require a proposal and approval.
+## What does not belong here
 
-## Choose an operation
+Keep project-specific truth in the project repository:
 
-| If you want to... | Use |
-|---|---|
-| Preserve exact wording | Capture |
-| Work through a large project | Project Map |
-| Develop an unclear idea | Explore |
-| Pressure-test a plan | Grilling |
-| Add an external source | Ingest |
-| Ask from existing knowledge | Query |
-| Update durable knowledge | Sync |
-| Process the Inbox | Review |
-| Audit the workspace | Lint |
-| Create a Git restore point | Checkpoint |
+- source code and configuration;
+- current implementation plans and task status;
+- deployment and environment instructions;
+- project-only decisions that are meaningless without the project;
+- project-only skills.
 
-Plain English is enough. Slash commands are optional and depend on the harness.
+Promote a reusable lesson by synthesis, not by copying a project document. See [Working with projects](docs/WORKING-WITH-PROJECTS.md).
 
-## Capture
+## Three visible states of a change
 
-Use Capture when losing the original wording would matter.
+1. **Local:** Cursor has prepared files on a focused branch. Other users cannot see them. Local preparation does not authorize publication.
+2. **Published:** Cursor has committed and pushed the branch and created or updated a GitLab Merge Request after explicit `Publish this change` confirmation. The proposal is visible but not canonical.
+3. **Merged:** a user has triggered merge in GitLab. Content on `main` is canonical; merged Knowledge is active unless explicitly disputed, superseded, or archived.
 
-```text
-Save this exactly: not every efficiency improvement makes a game better.
-```
+Git commits and Merge Requests are the authoritative change history. There is no Team Engram operation log.
 
-Capture writes the raw payload immediately because the request itself grants permission to preserve it. It may add light metadata and a search hint. It must not rewrite, translate, or promote the statement into accepted knowledge.
+## Everyday tasks
 
-Ordinary captures go to `Engram/Inbox/`. Explicit health captures go to `Engram/Health/Inbox/`.
+| Goal | Primary guide | Does it change files? |
+|---|---|---|
+| Set up Cursor | [Cursor setup](docs/CURSOR-SETUP.md) | Creates only a local workspace file when requested |
+| Attach or remove projects | [Working with projects](docs/WORKING-WITH-PROJECTS.md) | Local workspace file only |
+| Ask a question | [Ask Team Engram](docs/ASKING-TEAM-ENGRAM.md) | No corpus change; local Index may refresh |
+| Add or update Knowledge | [Add or update Knowledge](docs/ADDING-OR-UPDATING-KNOWLEDGE.md) | Focused local corpus change |
+| Preserve and analyze a source | [Ingest a source](docs/INGESTING-A-SOURCE.md) | Focused local source change |
+| Audit the repository | [Audit Team Engram](docs/AUDITING-TEAM-ENGRAM.md) | Read-only unless you separately request fixes |
+| Create or update shared behavior | [Shared skill](docs/CREATING-OR-UPDATING-A-SHARED-SKILL.md) | Focused local skill change |
+| Make a local change visible | [Publish](docs/PUBLISHING-A-CHANGE.md) | Commit, push, and MR after confirmation |
+| Accept a published change | [Merge](docs/MERGING-A-CHANGE.md) | Separate human-triggered GitLab action |
+| Refresh after a merge | [Update local copy](docs/UPDATING-YOUR-LOCAL-COPY.md) | Updates local Git state and Index |
+| Handle concurrent edits | [Resolve conflicts](docs/RESOLVING-CONFLICTS.md) | Only approved, reviewed conflict resolution |
+| Pause, discard, or restore work | [Abandon or recover](docs/ABANDONING-OR-RECOVERING-A-CHANGE.md) | Depends on explicit choice |
 
-## Project Map
+## Cursor's normal safety boundary
 
-Use Project Map for work that spans many decisions or sessions.
+For a writing task, Cursor may inspect, create a focused branch, prepare the requested local files, regenerate the ignored Index, and run local validation. Before publication it must show:
 
-```text
-Create a project map for the combat redesign. The destination is an approved design spec and an implementation plan.
-```
+- the branch and affected files;
+- a semantic summary, not only line counts;
+- local validation results;
+- unresolved questions or conflicts;
+- any unrelated pre-existing changes it left untouched.
 
-A map tracks:
+Only explicit publication confirmation authorizes commit, push, and Merge Request creation or update. Merge remains a separate human action. Rules and edge cases live in the [protocol](Protocols/Team-Engram-Protocol.md), not in every guide.
 
-- the destination;
-- inputs and constraints;
-- decisions already made;
-- the current unblocked frontier;
-- blocked questions;
-- areas that are still too vague;
-- work intentionally left out.
+## Navigation and history
 
-The map is a navigation layer. It does not replace approved project context, decisions, specs, or implementation plans. Changes to those canonical documents go through Sync.
+- Start discovery at [Context Map](CONTEXT-MAP.md).
+- Let Cursor regenerate `Engram/INDEX.md` when missing or stale.
+- Never edit or publish the generated Index.
+- Use GitLab Merge Requests to inspect discussions and prior changes.
+- Use Git file history when exact authorship or evolution matters.
 
-## Explore
+## Structure grows only when needed
 
-Use Explore when the question is still fuzzy.
+The starter corpus has Knowledge, Decisions, Sources/Raw, and Sources/Records. Do not create domains, catch-all folders, ownership trees, or new page types in advance. Propose structure only when a coherent real-content cluster has an independent lifecycle or repeatedly causes retrieval, naming, navigation, or context-loading problems.
 
-```text
-Help me understand when optimization reduces meaningful player choice. Ask one question at a time.
-```
+## Advanced work
 
-Explore loads only relevant context and may maintain a temporary note in `Engram/Sessions/`. The note records the working model, not a transcript. Conclusions remain provisional until Sync.
+Project Map, Explore, and Grilling remain available for larger decisions and investigations. They support thinking; they do not bypass Team Engram's local validation, publication confirmation, or merge boundaries. Material shared-skill work must follow the [shared skill guide](docs/CREATING-OR-UPDATING-A-SHARED-SKILL.md).
 
-## Grilling
+## First use
 
-Use Grilling when a plan is ready for a hard review.
-
-```text
-Grill me on this architecture until every unresolved dependency is visible.
-```
-
-The agent works through a dependency tree in rounds, recommends answers, and asks the user to make the actual decisions. Grilling is conversation-only. Nothing enters the Engram until the user confirms shared understanding and approves a Sync proposal.
-
-## Ingest
-
-Use Ingest for articles, papers, books, PDFs, videos, transcripts, or other external sources.
-
-```text
-Ingest this article. Preserve the source, then separate the author's claims from evidence, limitations, and my interpretation: https://example.com/article
-```
-
-A requested ingest may preserve a raw artifact or an immutable locator manifest immediately. If the source is unavailable, the agent must say so rather than inventing its contents.
-
-The derived source record requires a proposal and approval. It should separate:
-
-- direct source claims;
-- supporting evidence or quotations;
-- author opinion;
-- user interpretation;
-- agent inference;
-- limitations and unresolved contradictions.
-
-Ingest does not have to create a Knowledge page. It should do so only when the source supports a reusable, standalone model.
-
-## Query
-
-Query reads the Engram without changing it.
-
-```text
-What has the Engram decided about Git checkpoints? Cite the decision and current context.
-```
-
-The agent starts with `CONTEXT-MAP.md`, uses `Engram/INDEX.md` to locate relevant pages, and reads raw evidence only when exact wording or provenance matters.
-
-A good answer distinguishes:
-
-- approved durable state;
-- external source claims;
-- user interpretation;
-- new agent inference.
-
-The Index and Log help discovery, but they are not evidence for a substantive claim.
-
-## Sync
-
-Sync is the boundary between discussion and durable meaning.
-
-```text
-Propose the Engram changes from this conversation. Show the files and claims first.
-```
-
-The agent should:
-
-1. find existing canonical pages before creating new ones;
-2. show a compact proposal with exact files and intended changes;
-3. wait for approval;
-4. apply only the approved items;
-5. repair links and refresh the Index;
-6. append a short, non-sensitive operation entry to `Engram/LOG.md`.
-
-Agreement with an idea is not approval to write. Approval applies to the current proposal.
-
-## Review
-
-Review processes unhandled captures in small batches.
-
-```text
-Show up to ten unprocessed captures and recommend one action for each. Do not change anything yet.
-```
-
-The report is read-only. Promotion, merging, archiving, deletion, or project updates require approval and follow the Sync rules. Raw payloads remain unchanged.
-
-## Lint
-
-Lint checks the workspace without repairing it.
-
-```text
-Audit the Engram for broken links, stale claims, missing provenance, and raw/derived mixing.
-```
-
-Run the deterministic check first:
-
-```bash
-python Tools/engram.py lint
-```
-
-Semantic findings should be reported separately. Fixes that change meaning go through Sync.
-
-## Checkpoint
-
-Checkpoint creates a deliberate Git restore point after meaningful approved work.
-
-```text
-Propose a checkpoint for the approved architecture update. Exclude unrelated files and do not commit until I confirm.
-```
-
-The default is proposal-only. Before a commit, the agent must inspect every staged path and stop if any staged work falls outside the approved scope. It must not reset, clean, amend, or hide unrelated work.
-
-Use `Engram/LOG.md` to find an operation and Git to inspect the actual file history.
-
-## Project files
-
-A project usually contains:
-
-- `CONTEXT.md` for current approved state;
-- `DECISIONS.md` for consequential choices and rationale;
-- `PROJECT-MAP.md` for navigation across unresolved work;
-- optional specs, research, and implementation plans.
-
-Keep large source-code repositories outside the Engram. Connect them through the agent harness or IDE instead.
-
-## Language
-
-The product, system files, generated examples, and default agent responses are English. Raw user material stays in the language received. An agent may use another conversation language when the user explicitly asks for it, but it should not silently translate stored evidence.
-
-## Common mistakes
-
-- Saving a whole transcript instead of the durable conclusion.
-- Treating a Capture as proof that a claim is true.
-- Expecting Explore or Grilling to write durable state.
-- Creating a new page when an existing canonical page should be updated.
-- Editing raw payloads or source manifests after creation.
-- Mixing source claims, user interpretation, and agent inference.
-- Editing `Engram/INDEX.md` by hand.
-- Expecting Lint to repair semantic problems automatically.
-- Committing every small capture instead of checkpointing at useful boundaries.
-
-For storage rules and edge cases, read the [Engram Protocol](Protocols/Engram-Protocol.md).
+Follow [Quickstart](QUICKSTART.md), then keep the [Glossary](docs/GLOSSARY.md) nearby while the collaboration terms become familiar.

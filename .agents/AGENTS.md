@@ -1,115 +1,108 @@
-# Engram Agent
+# Team Engram Agent Contract
 
-You are operating inside a persistent, LLM-maintained personal knowledge workspace.
+You are operating inside a shared, Markdown-first organizational knowledge repository.
 
-## Mandatory Startup Behavior
+## Normative sources
 
 Before substantial work:
 
-1. Read `Protocols/Engram-Protocol.md`.
-2. Read `CONTEXT-MAP.md` as the small routing map.
-3. Read `Engram/CONTEXT.md` for root current state.
-4. Use `Engram/INDEX.md` when locating pages in the navigable corpus.
-5. Read the relevant local context and only the files required for the request.
+1. Read `Protocols/Team-Engram-Protocol.md` as the normative storage, lifecycle, collaboration, and safety contract.
+2. Read `CONTEXT-MAP.md`, then `Engram/CONTEXT.md`.
+3. Regenerate the ignored local `Engram/INDEX.md` when it is missing or stale, then load only the pages required for the request.
+4. Read local instructions in attached project repositories before changing their files.
+5. Inspect the Git working tree and current branch before any write.
 
-Do not recursively scan the workspace unless the user requests a review, lint, or other explicitly broad operation.
+Do not recursively scan the corpus unless the user requests an Audit or another explicitly repository-wide operation.
 
-## Skill Announcement
+## Language
 
-The user rarely invokes a skill by name and instead describes what to do contextually. Whenever a turn executes one of the skills listed under Available Skills, prefix the reply with a short tag on its own line: `[skill: <name>]` (for example `[skill: grilling]`). This applies even when the skill was reached contextually rather than by explicit command.
+Every repository artifact is English: content, instructions, skills, implementation, documentation, examples, commits, and Merge Requests. Conversation may use the user's preferred language. Preserve source-language text when an immutable source snapshot or exact quotation requires it.
 
-## Storage Semantics
+## Repository boundary
 
-Treat workspace content as two different classes.
+Team Engram stores reusable organizational knowledge that remains useful without an originating project attached. Project-specific implementation, plans, configuration, current-state documentation, and project-only skills stay in the project repository.
 
-### Append-only raw evidence
+When project work yields reusable knowledge, keep project truth in place and propose a standalone Team Engram synthesis. Publish changes to each repository independently under that repository's rules.
 
-Raw evidence preserves what was received or observed. It includes:
+## Canonical state and content classes
 
-* every capture payload under a `Raw Capture` or `Additional Raw Capture` heading;
-* immutable source artifacts and locator manifests under `Engram/Sources/Raw/`;
-* dated raw health evidence and attributed reports;
-* `Engram/LOG.md`, the append-only operational log.
+Merged `main` is canonical. Unfinished work belongs on a focused branch and, after publication, in a Merge Request.
 
-Never rewrite, normalize, translate, summarize in place, or silently correct a raw payload. Add a dated addendum, correction record, superseding artifact, or derived page instead. Non-semantic metadata, status, and processing references may be added where the raw-page schema permits. Never edit an immutable raw source artifact or locator manifest after creation, including to add backlinks.
+The initial corpus contains only:
 
-### Editable derived wiki
+- `Engram/Knowledge/` — maintained reusable organizational understanding;
+- `Engram/Decisions/` — accepted, rejected, or superseded choices and rationale;
+- `Engram/Sources/Raw/` — immutable Markdown snapshots or locator records;
+- `Engram/Sources/Records/` — editable source-grounded analysis.
 
-Contexts, Knowledge pages, source records under `Engram/Sources/Records/`, and current-state summaries are derived models. They may be revised after approval when understanding changes. Preserve provenance and significant supersession history.
+Create new structure only when real content demonstrates an independent lifecycle or repeated navigation, retrieval, naming, or progressive-loading problem. Do not create empty domains, speculative taxonomies, or catch-all folders.
 
-## Claim Authority
+## Knowledge and evidence
 
-Markdown is the durable store, but no single global hierarchy decides every conflict. Determine authority per claim type:
+Independently authored organizational Knowledge may originate with a person or agent and does not require external proof. Provenance is required when content claims derivation, verification, quotation, or attribution from named evidence.
 
-* **User preference:** the user's latest explicit, attributable statement or correction controls their current preference. Older dated preferences remain historical evidence.
-* **Decision:** the latest approved decision in the relevant scope controls until explicitly superseded. A proposal, source recommendation, or agent inference is not a decision.
-* **External fact:** authority depends on source quality, directness, date, method, and provenance. A derived wiki summary cannot outrank its evidence merely because it is canonical.
-* **Health record:** preserve each dated lab result, clinician statement, document, and user report with exact attribution. Newer evidence does not erase older evidence, and interpretation never becomes diagnosis by implication.
-* **Interpretation:** attribute user interpretations separately from source claims. Label agent inference as inference; it remains non-authoritative unless the user approves it as durable interpretation, and approval does not convert it into an external fact.
+Keep these categories explicit:
 
-Indexes, backlinks, chat history, model memory, and operational logs help discovery but are not evidence for a substantive claim.
+- maintained knowledge;
+- source claims;
+- accepted or rejected decisions;
+- agent inference.
 
-When information conflicts, identify the claim type, dates, scope, and provenance; preserve the conflict; and ask only when it blocks safe progress.
+Never invent citations, quotations, dates, authors, measurements, paths, source locations, or access to unavailable material. Preserve meaningful contradictions and uncertainty.
 
-## Approval Boundary
+## Raw sources
 
-Capture may write immediately because the user explicitly requested preservation. A requested ingest may preserve the raw source or locator immediately.
+A requested Ingest may preserve a complete ordinary article-scale text source, including a multi-screen Confluence article, as an immutable Markdown snapshot. URLs and large, binary, restricted, or externally stored artifacts use immutable locator records. A stored artifact requires its recorded hash.
 
-An explicit Explore request narrowly authorizes creation and updates of its temporary structured session note for the duration of that Explore. The session note is non-authoritative working memory. This authorization is not approval to promote any provisional content into durable derived knowledge, decisions, project or personal context, or health interpretation.
+A changed retrieval creates a new dated raw record or explicit addendum. Never rewrite an existing raw payload or locator to represent changed source content. Editable source records link to raw records. Ingest creates or updates canonical Knowledge only when reusable synthesis is warranted.
 
-An explicit Grilling request authorizes only in-conversation scratch working memory (a design tree and its frontier) for the duration of that session. Grilling does not write any persistent Brain file, including no session-note entity. It never acts on its conclusions until the user confirms the frontier is empty and shared understanding is reached; after that confirmation, results are written only through Sync.
+## Navigation
 
-An explicit Project Map request authorizes creation and updates of the project's map and map-ticket working artifacts. These are navigation and planning layers, not canonical specs. Consequential project semantics still require Sync approval before promotion into project context, decision records, canonical design specs, source records, or implementation plans.
+`CONTEXT-MAP.md` is the short committed router. `Engram/INDEX.md` is deterministic local generated state and is ignored by Git. Regenerate it before Query, Audit, and applicable writing work. Neither navigation file is substantive evidence.
 
-An explicit Teach request authorizes only the named `Learning/<Topic>/` working area for that teaching engagement. These notes track the curriculum and progress; they do not update canonical Knowledge, preferences, personal context, or project state without Sync approval.
+Use real relative Markdown links and load context progressively.
 
-The following semantic changes require a proposal and user approval before writing:
+## Local change and publication boundary
 
-* creating or changing derived claims, conclusions, interpretations, preferences, decisions, or current context;
-* merging, archiving, deleting, or marking durable knowledge superseded;
-* changing project semantics;
-* interpreting health evidence or changing health context.
+A request to add, update, ingest, or change a shared skill authorizes a focused local proposal within that scope. It does not authorize publication or merge.
 
-Safe service maintenance does not require separate material approval when it changes no claim meaning:
+Before writing:
 
-* keeping `Engram/INDEX.md` complete;
-* appending a non-sensitive operation entry to `Engram/LOG.md`;
-* adding or repairing real links, with reciprocal backlinks only between editable derived pages;
-* enriching non-semantic metadata;
-* producing lint reports.
+1. inspect status, branch, and remotes;
+2. preserve unrelated changes without reset, cleanup, hiding, staging, or inclusion;
+3. update a clean local `main` by fast-forward only when safe;
+4. create or use one focused branch named `knowledge/<slug>`, `source/<slug>`, `skill/<slug>`, or `system/<slug>`.
 
-If a maintenance edit would imply a new relationship, status, conclusion, or health meaning, treat it as semantic and request approval.
+After editing, run applicable local lint and tests. Report the semantic change, affected files, exact validation results, and unresolved concerns. Then stop and wait for explicit confirmation such as `Publish this change`.
 
-## Navigation and Page Design
+Only after publication confirmation may you create a focused commit, push the branch, and create or update a GitLab Merge Request. Stage only the reported files. Publication never authorizes merge.
 
-* `Engram/INDEX.md` is the complete catalog of navigable corpus pages, including contexts, canonical pages, captures, sessions, derived source records, and raw-source manifests. Keep it comprehensive and mechanically maintainable.
-* `CONTEXT-MAP.md` is a small, stable router to major contexts and domains. Do not turn it into a full catalog.
-* `Engram/LOG.md` is an append-only operational search trail. An entry may contain only date, operation, a short non-sensitive title, affected workspace-relative paths, and an optional bounded non-sensitive note. Never include raw payloads, source excerpts, health details, secrets, external absolute paths, or other sensitive content. When this format changes, append a migration marker; do not rewrite earlier entries, which remain governed by the schema active when they were written.
-* Prefer standard Markdown links such as `[Project context](../Projects/Example/CONTEXT.md)`. Use real resolvable relative paths; do not invent targets. Add useful reciprocal backlinks only between editable derived pages. A derived source record references its immutable raw manifest one-way; never modify the manifest to link back.
-* Create a new page only for a concept or entity that can stand on its own, has an independent lifecycle, and is likely to be linked from multiple contexts. Otherwise update the existing canonical page.
+Any repository user may self-merge. Peer review is optional. Merge is always a separate human-triggered action; the normal choice is squash merge with source-branch deletion. Team Engram has no CI, pipelines, required status checks, operational Log, or checkpoint workflow.
 
-## Context and Writing Behavior
+Resolve only unambiguous mechanical conflicts. Present conflicts between meanings, claims, decisions, or canonical edits to the user. Close Merge Requests or delete branches only after explicit confirmation.
 
-`CONTEXT.md` files represent current approved state, not chat summaries or chronological diaries. Decision files preserve consequential choices. Source records preserve provenance and source-specific analysis. Knowledge pages contain reusable understanding; unresolved ideas use provisional Knowledge status. Session notes are temporary structured working memory, not transcripts. Project maps are navigation and decision-planning layers for large projects; they point to canonical specs and decisions rather than replacing them.
+## User-facing goals and skills
 
-Default to English. Use another conversation language only when the user asks for it or the active profile explicitly requires it. Keep product files, system documents, generated headings, and examples in English. Preserve raw user material in the language received and search original terms plus useful English equivalents when needed.
+Users may describe goals in plain language; route them to these skills:
 
-Use clear Markdown and valid YAML frontmatter where required. Do not invent citations, dates, measurements, filenames, medical values, quotations, or source locations.
+- `query-team-engram` — answer from the maintained corpus with page links;
+- `update-team-engram` — add or update reusable Knowledge or Decisions locally;
+- `ingest-source` — preserve and analyze a source, then integrate warranted synthesis;
+- `audit-team-engram` — run deterministic-first read-only structural and semantic review;
+- `manage-shared-skill` — create or materially update a shared skill;
+- `publish-team-engram-change` — internal publication helper used only after explicit confirmation.
 
-Do not ask whether to save after every message. Use the impact thresholds in the protocol and propose Sync only at natural boundaries.
+Advanced helpers:
 
-## Available Skills
+- `project-map` — navigate large multi-session efforts, normally in the attached project repository;
+- `explore` — develop one unresolved question without creating Team Engram Session files;
+- `grilling` — pressure-test a decision in conversation;
+- `writing-great-skills` — mandatory standard before creating or materially changing a shared skill.
 
-* `capture`: preserve a raw thought immediately without rewriting its payload;
-* `project-map`: run the main user-facing workflow for large multi-session projects through a decision map, routing internally to exploration, grilling, research, prototype, task, and Sync as needed;
-* `explore`: develop and stress-test an idea through focused, one-at-a-time questioning, with a persistent session note;
-* `grilling`: interview the user in dependency-ordered rounds over a design tree's frontier until every branch is resolved; ephemeral, writes nothing until the user confirms and Sync runs;
-* `teach` (trial): teach the user a topic over multiple sessions using a per-topic `Learning/<Topic>/` workspace;
-* `writing-great-skills`: reference for authoring and editing this workspace's own skills predictably; consult when creating or revising a skill file;
-* `ingest-source`: preserve an external source and derive reusable, source-grounded knowledge;
-* `query-engram`: answer from the Engram with claim-level citations and explicit epistemic labels;
-* `sync-engram`: propose and apply approved semantic updates, then maintain links, index, and log;
-* `review-engram`: run an Inbox-oriented review and route approved actions through Sync;
-* `lint-engram`: run deterministic and semantic checks as a read-only report;
-* `checkpoint-engram`: propose or create an explicit Git audit checkpoint without hidden commits.
-* `maintain-engram-product`: keep reusable skills, workflows, tools, and public documentation synchronized between the clean product repository and private Brains without copying protected content.
+Query and Audit do not edit tracked content. Audit may regenerate the ignored Index. Apply Audit findings only through a separate update request.
+
+## Shared skills
+
+`.agents/skills/<skill-name>/SKILL.md` is the canonical shared-skill path. Do not duplicate skills under another adapter tree. Shared reusable skills belong here; project-only skills stay with the project. Avoid duplicate skill names across attached roots.
+
+All pilot users are peers. Do not invent domain ownership, CODEOWNERS, access tiers, mandatory review, or prebuilt domains.

@@ -1,50 +1,29 @@
 ---
 type: knowledge
-status: provisional # provisional, developing, active, disputed, superseded, archived
-created: YYYY-MM-DDTHH:mm:ss
-updated: YYYY-MM-DDTHH:mm:ss
-applies_from: unknown
-applies_until: open
-last_verified: YYYY-MM-DD
+status: active
 topics: []
-provenance: [] # links to raw evidence, source records, captures, decisions, or sessions
-trust: medium # low, medium, high, established
+# provenance: []        # Add links when claims derive from named evidence.
+# superseded_by: ""    # Required only when status is superseded.
 ---
 
 # Title
 
 ## Summary
 
-*A concise synthesis of the maintained knowledge.*
+*A concise statement of the reusable organizational knowledge.*
 
-## Reusable Principles
+## Details
 
-*Generalizable rules, insights, or frameworks that can be applied elsewhere.*
+*The maintained explanation, guidance, or model.*
 
-## Scope and Temporal Bounds
+## Scope and Limitations
 
-*Where, for whom, and during what period this knowledge applies. Record staleness or supersession conditions.*
+*Where this knowledge applies and important limits or counterexamples.*
 
-## Evidence
+## Provenance
 
-*Source claims, observations, data, or approved experience supporting the synthesis, with links.*
+*Optional for original organizational synthesis. Add precise links and attribution when this page claims derivation, verification, or attribution from named evidence.*
 
-## Provenance and Trust
+## Related Knowledge
 
-*Why the current trust level is justified. Distinguish direct evidence, user interpretation, and agent inference.*
-
-## Limitations
-
-*Conditions under which the principles may not hold.*
-
-## Counterexamples
-
-*Cases that challenge or narrow the model.*
-
-## Applications
-
-*Practical uses, including approved and merely proposed applications.*
-
-## Related Work
-
-*Links to relevant Project Contexts, Knowledge, Decisions, Entities, Events, and Source records.*
+*Links to related Knowledge or Decisions.*

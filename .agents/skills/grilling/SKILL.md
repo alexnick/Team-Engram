@@ -1,22 +1,22 @@
 ---
 name: grilling
-description: Use to pressure-test a plan or decision through dependency-ordered questions.
+description: Use to pressure-test a plan through dependency-ordered questions.
 ---
 
-Interview the user relentlessly until you reach a shared understanding. Map this as a **design tree**: every decision branches into the decisions that hang off it.
+# Grilling
 
-Work the tree in **rounds**. The **frontier** is every decision whose prerequisites are already settled — the questions you can ask _now_ without guessing at answers you haven't heard yet. Ask the whole frontier in one round: number each question and give your recommended answer. Then wait for the user's answers before the next round.
+Interview the user relentlessly until you reach shared understanding. Map the problem as a **design tree** whose **frontier** contains every decision whose prerequisites are settled.
 
-Each round the user answers reshapes the tree — settled decisions push the frontier outward and unblock questions that depended on them. Recompute the frontier and ask the next round. A question whose answer depends on another question still open in this round belongs to a _later_ round, not this one.
+## Rounds
 
-Finding _facts_ is your job, never the user's. When a frontier question needs a fact from the environment, look it up directly or delegate a larger independent investigation to a subagent. Do not block unrelated questions while that work runs. The _decisions_ are the user's; put each decision to them and wait.
+Ask the whole frontier in one numbered round and give a recommended answer for each question. Wait for the user's answers, reshape the tree, recompute the frontier, and continue. A question that depends on another open answer belongs to a later round.
 
-The session is done when the frontier is empty: every branch of the design tree visited, nothing left silently assumed. Do not act on it until the user confirms you have reached a shared understanding.
+Finding facts is the agent's job. Look them up or delegate independent investigation without blocking unrelated frontier questions. Decisions remain the user's.
 
-## Fallback: one question at a time
-
-If the user asks to slow down or drop the batching (for this session or generally), switch to asking one question at a time — effectively a round of size one — adapting each next question to the answer just given. This is `explore`'s native mode; reach for it instead if the user consistently prefers it.
+If the user asks to slow down, use rounds of one question; use `explore` when that is the better continuing mode.
 
 ## Ephemeral by design
 
-This skill never writes a persistent Brain file, including no session-note entity. The design tree and frontier live only in the conversation. Once the frontier is empty and the user confirms shared understanding, hand off to `sync-engram` to write anything durable.
+The design tree and frontier live only in conversation. This skill writes no Team Engram session or other persistent file and does not act on conclusions. It ends when the frontier is empty and the user confirms shared understanding.
+
+After confirmation, route project-specific results to the project repository under its rules and reusable organizational synthesis to `update-team-engram`. A durable write is optional.
